@@ -14,6 +14,6 @@ data = pandas.io.sql.read_sql("SELECT YEAR, MONTH, AVG(TPCP/100.0) FROM SanSimon
 rows = len(data)
 Site = ['SanSimon'] * rows
 data.insert(0, 'SITE', Site)
-data.rename(columns={'AVG(TPCP/100.0)':'AVG_TPCP_IN'}, inplace=True)
+data.rename(columns={'AVG(TPCP/100.0)':'AVG_TPCP_CM'}, inplace=True)
 
 pandas.io.sql.write_frame(data, 'SanSimon_summary', con, flavor='sqlite', if_exists='replace')
