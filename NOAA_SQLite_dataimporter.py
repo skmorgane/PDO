@@ -10,7 +10,7 @@ data = pandas.read_csv("AllSanSimon.csv")
 con=dbapi.connect('SWweatherstations.sqlite')
 pandas.io.sql.write_frame(data, 'SanSimon', con, flavor='sqlite', if_exists='replace')
 
-data = pandas.io.sql.read_sql("SELECT YEAR, MONTH, AVG(TPCP/100.0) FROM SanSimon GROUP BY YEAR, MONTH", con)
+data = pandas.io.sql.read_sql("SELECT YEAR, MONTH, AVG(TPCP/100.0) FROM SanSimon WHERE TPCP >= 0 GROUP BY YEAR, MONTH", con)
 rows = len(data)
 Site = ['SanSimon'] * rows
 data.insert(0, 'SITE', Site)
