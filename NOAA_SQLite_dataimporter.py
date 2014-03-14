@@ -1,19 +1,25 @@
 """To use this to import NOAA data, you lust open the original csv file and 
-split the Date column by hand into Year, Month, Flag"""
+split the Date column by hand into YEAR, MONTH, FLAG"""
 import pandas
 import pandas.io.sql
 import sqlite3 as dbapi
+import glob
+import os
 
 con=dbapi.connect('SWweatherstations.sqlite')
-
-data = pandas.read_csv("AllSanSimon.csv")
-con=dbapi.connect('SWweatherstations.sqlite')
-pandas.io.sql.write_frame(data, 'SanSimon', con, flavor='sqlite', if_exists='replace')
-
-data_ppt = pandas.io.sql.read_sql("SELECT YEAR, MONTH, AVG(TPCP/100.0) FROM SanSimon WHERE TPCP >= 0 GROUP BY YEAR, MONTH", con)
-rows = len(data)
-Site = ['SanSimon'] * rows
-data.insert(0, 'SITE', Site)
-data.rename(columns={'AVG(TPCP/100.0)':'AVG_TPCP_CM'}, inplace=True)
-
-pandas.io.sql.write_frame(data, 'Site_ppt_avgs', con, flavor='sqlite', if_exists='replace')
+filenames = glob.glob('./Data/*_climate_allstations.csv')
+for filename in filenames:
+        site = os.path.basename(filename).split('_')[0]
+        data = pandas.read_csv(filename)
+        pandas.io.sql.write_frame(data, site, con, flavor='sqlite', if_exists='replace')
+        sql = "select YEAR, MONTH, AVG(TPCP/100.0) FROM '%(site)s' WHERE TPCP >= 0 GROUP BY YEAR, MONTH"
+        data_ppt = pandas.io.sql.read_sql(sql % {'site':site}, con)
+        rows = len(data)
+        Site_label = ['SanSimon'] * rows
+        data_ppt.insert(0, 'SITE', site)
+        data_ppt.rename(columns={'AVG(TPCP/100.0)':'AVG_TPCP_CM'}, inplace=True)
+        pandas.io.sql.write_frame(data_ppt, 'Site_ppt_avgs', con, flavor='sqlite', if_exists='append')
+#currently this will add the same site multiple times because it does not check to see
+#if the site already exists in Site_ppt_avgs. Can either drop the table each time
+#this script runs or put in a check to see if that site name already exists before
+#the data is added.
