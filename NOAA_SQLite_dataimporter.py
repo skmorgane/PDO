@@ -7,6 +7,8 @@ import glob
 import os
 
 con=dbapi.connect('SWweatherstations.sqlite')
+cur = con.cursor()
+cur.execute("DROP TABLE IF EXISTS Site_ppt_avgs")
 filenames = glob.glob('./Data/*_climate_allstations.csv')
 for filename in filenames:
         site = os.path.basename(filename).split('_')[0]
@@ -19,7 +21,3 @@ for filename in filenames:
         data_ppt.insert(0, 'SITE', site)
         data_ppt.rename(columns={'AVG(TPCP/100.0)':'AVG_TPCP_CM'}, inplace=True)
         pandas.io.sql.write_frame(data_ppt, 'Site_ppt_avgs', con, flavor='sqlite', if_exists='append')
-#currently this will add the same site multiple times because it does not check to see
-#if the site already exists in Site_ppt_avgs. Can either drop the table each time
-#this script runs or put in a check to see if that site name already exists before
-#the data is added.
