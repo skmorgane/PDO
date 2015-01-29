@@ -23,7 +23,16 @@ def calculate_individual_energy(data):
     data['energy'] = 5.69 * data['wgt'] ** 0.75
     return data
 
+def count_sampled_plots(rodent_data, trapping_data):
+    plot_list = list(rodent_data['plot'].unique())
+    trapping_data = trapping_data[trapping_data['plot'].isin(plot_list)]
+    period_plot_count = trapping_data[['period', 'sampled']].groupby(['period']).sum()
+    period_plot_count.reset_index(inplace=True)
+    return period_plot_count
+    
 ######  MAIN CODE
+
+Trapping_Table = pd.read_csv('Trapping_Table.csv')
 
 # Extracting rodent records for known species from control plots for the entire 
 # time series
@@ -41,40 +50,29 @@ query_rats = """SELECT Rodents.mo, Rodents.dy, Rodents.yr, Rodents.period,
                 """
 raw_data = extract_data(query_rats)
 raw_data = calculate_individual_energy(raw_data)
+plots_per_period = count_sampled_plots(raw_data, Trapping_Table)
 
-# imports trapping table, adds plot type info to table, calculates 
-# number of plots censused per period
-Trapping_Table = pd.read_csv('Trapping_Table.csv')
-period_plot_count = Trapping_Table[['period', 'sampled']].groupby(['period']).sum()
-#period_plot_count.reset_index(inplace=True)
+# calculates mean energy use per species per treatment for each trapping 
+# session
+control_sums = raw_data[['period', 'plot', 'species', 'energy'
+                         ]].groupby(['period', 'species']).sum()
+control_sums.reset_index(inplace=True)
+control_sums = pd.merge(control_sums, plots_per_period, how='left', 
+                        on=['period'])
+control_sums['average'] = control_sums['energy']/control_sums['sampled']
 
-## calculates mean energy use per species per treatment for each trapping 
-## session
-#treatment_sums = raw_data[['period', 'plot', 'Type', 'species', 'energy'
-                           #]].groupby(['period', 'Type', 'species']).sum()
-#treatment_sums.reset_index(inplace=True)
-#treatment_sums = pd.merge(treatment_sums, period_plot_count, how='left',
-                          #on=['period', 'Type'])
-#treatment_sums['average'] = treatment_sums['energy']/treatment_sums['sampled']
+# determines first Julian Date of trapping for each period, processes and merges
+# with data for export
 
-## determines first Julian Date of trapping for each period, processes and merges
-## with data for export
+JulianDate_for_period = Trapping_Table[['JulianDate', 
+                                        'period']].groupby(['period']).min()
+JulianDate_for_period['JulianDate'] = JulianDate_for_period['JulianDate'].astype(int)
+JulianDate_for_period.reset_index(inplace=True)
+control_sums = pd.merge(control_sums, JulianDate_for_period, how='left', 
+                        on=['period'])
 
-#JulianDate_for_period = Trapping_Table[['JulianDate', 
-                                        #'period']].groupby(['period']).min()
-#JulianDate_for_period['JulianDate'] = JulianDate_for_period['JulianDate'].astype(int)
-#JulianDate_for_period.reset_index(inplace=True)
-#treatment_sums = pd.merge(treatment_sums, JulianDate_for_period, how='left',
-                          #on=['period'])
+# formatting and output for analysis
+control_data = control_sums.drop(['plot', 'energy', 'sampled'], axis = 1)
 
-## formatting and output for analysis
-#treatment_data_export = treatment_sums.drop(['plot', 'energy', 'sampled'], 
-                                            #axis = 1)
-#treatment_data_export = treatment_data_export[(treatment_data_export['species'] != 'DX')
-                                              #& (treatment_data_export['species'] != 'PX')
-                                              #& (treatment_data_export['species'] != 'RX')
-                                              #& (treatment_data_export['species'] != 'OX')
-                                              #& (treatment_data_export['species'] != 'UR')
-                                              #& (treatment_data_export['species'] != 'SX')]
                                               
 #treatment_data_export.to_csv("Portal_Rodents_PriceProject.csv")
