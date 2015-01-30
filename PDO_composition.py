@@ -47,14 +47,26 @@ def calc_treatment_mean(rodent_data, period_plot_count):
 
 def add_julian_date(totals, trapping_data):
     
-    """calculates the Julian Date for a period using the year, day, month data 
-    for that period"""
+    """selects from the trapping data the first Julian Date for a period and 
+    adds to processed rodent data dataframe"""
     
     JulianDate_for_period = trapping_data[['JulianDate', 
                                             'period']].groupby(['period']).min()
     JulianDate_for_period['JulianDate'] = JulianDate_for_period['JulianDate'].astype(int)
     JulianDate_for_period.reset_index(inplace=True)
     totals = pd.merge(totals, JulianDate_for_period, how='left', on=['period'])
+    return totals
+
+def calc_relative_energy(totals):
+    
+    """ calculates for each species its the fraction of the total energy use in
+    that trapping period"""
+    
+    total_E = totals[['period', 'mean_energy']].groupby(['period']).sum()
+    total_E.reset_index(inplace=True)
+    total_E.columns = ['period', 'total_energy']
+    totals = pd.merge(totals, total_E, how='left', on=['period'])
+    totals['rel_energy'] = totals['mean_energy']/totals['total_energy']
     return totals
     
 ######  MAIN CODE
@@ -80,5 +92,6 @@ raw_data = calculate_individual_energy(raw_data)
 plots_per_period = count_sampled_plots(raw_data, Trapping_Table)
 species_energy_means = calc_treatment_mean(raw_data, plots_per_period)
 species_energy_means = add_julian_date(species_energy_means, Trapping_Table)
-                                              
+species_energy_means = calc_relative_energy(species_energy_means)
+                                           
 #treatment_data_export.to_csv("Portal_Rodents_PriceProject.csv")
