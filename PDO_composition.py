@@ -74,13 +74,14 @@ def create_array(totals):
     uses that data to generate an array that can be used for analysis"""
     
     # currently the data is still in a dataframe with NaNs instead of 0's. Next
-    # steps: replace NaN w/ zero and export into an actual array.
+    # steps: export into an actual array.
     
     cols = [col for col in totals.columns if col in ['period', 'species',
                                                      'rel_energy']]
     totals = totals[cols]
     array_format = pd.pivot_table(totals, values='rel_energy', index=['period'],
                                   columns=['species'])
+    array_format.fillna(0, inplace=True)
     return array_format
 
 ######  MAIN CODE
