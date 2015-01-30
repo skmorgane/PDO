@@ -68,7 +68,21 @@ def calc_relative_energy(totals):
     totals = pd.merge(totals, total_E, how='left', on=['period'])
     totals['rel_energy'] = totals['mean_energy']/totals['total_energy']
     return totals
+
+def create_array(totals):
+    """ from the main data file, extracts just period, species, rel_energy and
+    uses that data to generate an array that can be used for analysis"""
     
+    # currently the data is still in a dataframe with NaNs instead of 0's. Next
+    # steps: replace NaN w/ zero and export into an actual array.
+    
+    cols = [col for col in totals.columns if col in ['period', 'species',
+                                                     'rel_energy']]
+    totals = totals[cols]
+    array_format = pd.pivot_table(totals, values='rel_energy', index=['period'],
+                                  columns=['species'])
+    return array_format
+
 ######  MAIN CODE
 
 Trapping_Table = pd.read_csv('Trapping_Table.csv')
@@ -93,5 +107,7 @@ plots_per_period = count_sampled_plots(raw_data, Trapping_Table)
 species_energy_means = calc_treatment_mean(raw_data, plots_per_period)
 species_energy_means = add_julian_date(species_energy_means, Trapping_Table)
 species_energy_means = calc_relative_energy(species_energy_means)
+data_array = create_array(species_energy_means)
+
                                            
-#treatment_data_export.to_csv("Portal_Rodents_PriceProject.csv")
+#data_array.to_csv("monthly_relE_controls.csv")
