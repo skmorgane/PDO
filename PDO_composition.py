@@ -24,11 +24,38 @@ def calculate_individual_energy(data):
     return data
 
 def count_sampled_plots(rodent_data, trapping_data):
+    
+    """ counts number of plots actually sampled in a trapping period"""
+    
     plot_list = list(rodent_data['plot'].unique())
     trapping_data = trapping_data[trapping_data['plot'].isin(plot_list)]
     period_plot_count = trapping_data[['period', 'sampled']].groupby(['period']).sum()
     period_plot_count.reset_index(inplace=True)
     return period_plot_count
+
+def calc_treatment_mean(rodent_data, period_plot_count):
+    
+    """calculates mean energy use per species per treatment for each trapping session"""
+    
+    totals = rodent_data[['period', 'plot', 'species', 'energy'
+                          ]].groupby(['period', 'species']).sum()
+    totals.reset_index(inplace=True)
+    totals = pd.merge(totals, period_plot_count, how='left', on=['period'])
+    totals['mean_energy'] = totals['energy']/totals['sampled']
+    totals = totals.drop(['plot', 'energy', 'sampled'], axis = 1)
+    return totals
+
+def add_julian_date(totals, trapping_data):
+    
+    """calculates the Julian Date for a period using the year, day, month data 
+    for that period"""
+    
+    JulianDate_for_period = trapping_data[['JulianDate', 
+                                            'period']].groupby(['period']).min()
+    JulianDate_for_period['JulianDate'] = JulianDate_for_period['JulianDate'].astype(int)
+    JulianDate_for_period.reset_index(inplace=True)
+    totals = pd.merge(totals, JulianDate_for_period, how='left', on=['period'])
+    return totals
     
 ######  MAIN CODE
 
@@ -51,28 +78,7 @@ query_rats = """SELECT Rodents.mo, Rodents.dy, Rodents.yr, Rodents.period,
 raw_data = extract_data(query_rats)
 raw_data = calculate_individual_energy(raw_data)
 plots_per_period = count_sampled_plots(raw_data, Trapping_Table)
-
-# calculates mean energy use per species per treatment for each trapping 
-# session
-control_sums = raw_data[['period', 'plot', 'species', 'energy'
-                         ]].groupby(['period', 'species']).sum()
-control_sums.reset_index(inplace=True)
-control_sums = pd.merge(control_sums, plots_per_period, how='left', 
-                        on=['period'])
-control_sums['average'] = control_sums['energy']/control_sums['sampled']
-
-# determines first Julian Date of trapping for each period, processes and merges
-# with data for export
-
-JulianDate_for_period = Trapping_Table[['JulianDate', 
-                                        'period']].groupby(['period']).min()
-JulianDate_for_period['JulianDate'] = JulianDate_for_period['JulianDate'].astype(int)
-JulianDate_for_period.reset_index(inplace=True)
-control_sums = pd.merge(control_sums, JulianDate_for_period, how='left', 
-                        on=['period'])
-
-# formatting and output for analysis
-control_data = control_sums.drop(['plot', 'energy', 'sampled'], axis = 1)
-
+species_energy_means = calc_treatment_mean(raw_data, plots_per_period)
+species_energy_means = add_julian_date(species_energy_means, Trapping_Table)
                                               
 #treatment_data_export.to_csv("Portal_Rodents_PriceProject.csv")
