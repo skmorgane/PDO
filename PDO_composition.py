@@ -69,17 +69,17 @@ def calc_relative_energy(totals):
     totals['rel_energy'] = totals['mean_energy']/totals['total_energy']
     return totals
 
-def create_array(totals):
-    """ from the main data file, extracts just period, species, rel_energy and
-    uses that data to generate an array that can be used for analysis"""
+def create_array(totals, energy_type):
+    
+    """ from the main data file, extracts just period, species, and either
+    rel_energy or mean_energy to generate an array that can be used for analysis"""
     
     # currently the data is still in a dataframe with NaNs instead of 0's. Next
     # steps: export into an actual array.
-    
-    cols = [col for col in totals.columns if col in ['period', 'species',
-                                                     'rel_energy']]
+    cols =  [col for col in totals.columns 
+                                if col in ['period', 'species', energy_type]]    
     totals = totals[cols]
-    array_format = pd.pivot_table(totals, values='rel_energy', index=['period'],
+    array_format = pd.pivot_table(totals, values=energy_type, index=['period'],
                                   columns=['species'])
     array_format.fillna(0, inplace=True)
     return array_format
@@ -107,8 +107,10 @@ raw_data = calculate_individual_energy(raw_data)
 plots_per_period = count_sampled_plots(raw_data, Trapping_Table)
 species_energy_means = calc_treatment_mean(raw_data, plots_per_period)
 species_energy_means = add_julian_date(species_energy_means, Trapping_Table)
+total_data_array = create_array(species_energy_means, 'mean_energy')
 species_energy_means = calc_relative_energy(species_energy_means)
-data_array = create_array(species_energy_means)
+relative_data_array = create_array(species_energy_means, 'rel_energy')
+
 
                                            
-#data_array.to_csv("monthly_relE_controls.csv")
+total_data_array.to_csv("monthly_E_controls.csv")
