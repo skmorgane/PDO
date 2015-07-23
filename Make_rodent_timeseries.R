@@ -33,4 +33,10 @@ make_period_totalenergy_date_data = function(data){
 data_w_dates = add_dates(data,trapping_info)
 period_energy = make_period_totalenergy_date_data(data_w_dates)
 
+period_energy$Year = as.numeric(format(period_energy$Date, format = "%Y"))
+period_energy$month = as.numeric(format(period_energy$Date, format = "%m")) 
 
+dat1978 = subset(period_energy, period_energy$Year == 1978)
+unique_months = unique(dat1978$month)
+year_groups = group_by(period_energy, Year)
+census_dates = summarize(year_groups, unique_mos = length(unique(month)))
