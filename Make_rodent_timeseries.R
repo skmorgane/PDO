@@ -20,6 +20,9 @@ add_dates = function(data_table, date_table){
 }
 
 make_period_totalenergy_date_data = function(data){
+  # because species-level energy isn't necessary
+  # this function strips the dataframe to only two
+  # columns: Period Date and Total rodent energy
   
   data$total = rowSums(data[,2:21])
   energy = data.frame(data$start_date, data$total)
