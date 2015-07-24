@@ -36,7 +36,18 @@ period_energy = make_period_totalenergy_date_data(data_w_dates)
 period_energy$Year = as.numeric(format(period_energy$Date, format = "%Y"))
 period_energy$month = as.numeric(format(period_energy$Date, format = "%m")) 
 
-dat1978 = subset(period_energy, period_energy$Year == 1978)
-unique_months = unique(dat1978$month)
-year_groups = group_by(period_energy, Year)
-census_dates = summarize(year_groups, unique_mos = length(unique(month)))
+period_energy$tempdate = as.Date(paste(period_energy$Year, period_energy$month, "15", sep='-')
+                                 , format="%Y-%m-%d")
+first_date = as.Date(min(period_energy$tempdate))
+end_date = as.Date(max(period_energy$tempdate))
+full = seq(from=first_date, to=end_date, by='1 month') 
+
+write.csv(full, "all_months.csv")
+write.csv(period_energy, "Period_energy.csv")
+
+### Once these files are exported, they are processed by hand currently to line up dates between
+### All_months.csv and Period_energy.csv. The fie showing how things were lined up is Month_energy.xlsx
+### The final file for analysis is month_energy.csv
+
+
+
