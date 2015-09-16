@@ -3,7 +3,12 @@ library(reshape)
 library(pracma)
 
 
-create_ts = function(date_column, data_column, date){
+create_ts = function(date_column, data_column, starting_date){
+  # takes date and data columns from a data dataframe
+  # reformats and outputs a timeseries object for the
+  # subset of data specified using the date input.
+  # starting_date is the date the subset should begin at
+  # starting_date should be formatted YYYY-MM-DD
 
   df = data.frame(date_column, data_column)
   subset_df = subset(df, as.Date(df$date_column) > date)
@@ -17,12 +22,17 @@ create_ts = function(date_column, data_column, date){
      frequency = 12)
 }
 
-#import and process NDVI
+#import and process NDVI data into timeseries object
+
 dataN = read.csv("monthly_NDVI.csv")
 dataN$mdy = as.Date(paste(dataN$Date, "15",sep="-"), format="%Y-%m-%d")
 tNDVI = create_ts(dataN$mdy, dataN$NDVI, '1992-02-15')
 
-# import and process rodent energy
+# import and process rodent energy into timeseries object
+#     currently creates a long and short version. Long version
+#     is entire timeseries. Short version matches current NDVI
+#     timespan.
+
 dataE = read.csv("month_energy.csv")
 tE_short = create_ts(as.Date(dataE$fulldate, format="%m/%d/%Y"), 
                      dataE$Energy,'1992-02-15')
@@ -30,6 +40,9 @@ tE_all = create_ts(as.Date(dataE$fulldate, format="%m/%d/%Y"),
                    dataE$Energy,'1977-6-15')
 
 # import and process precipitation data
+#     currently creates three versions: entire precip data (all),
+#     portal time span (1977), and NDVI time span (1992)
+
 datappt = read.csv("SanSimon_ppt_1946.csv")
 datappt$mdy = as.Date(paste(datappt$YEAR, datappt$MONTH, "15",sep="-"),
                       format="%Y-%m-%d")
@@ -39,21 +52,27 @@ ts_ppt_1977 = create_ts(datappt$mdy, datappt$pptmm, '1977-06-15')
 ts_ppt_all = create_ts(datappt$mdy, datappt$pptmm, '1945-12-15')
 
 ####  Seasonal and trend fits for NDVI, Rodents, and PPt 1992-2014
-x_1992_2015 = seq(from=1992, to=2015, by=1)
+
+
+x_1992_2015 = seq(from=1992, to=2015, by=1)     # used for x-axis
 
 # Precipitation
 
-fit_p1992 = stl(ts_ppt_1992, t.window=61, s.window=7)
-plot(ts_ppt_1992, col='gray', lwd=2,
+fit_p1992 = stl(ts_ppt_1992, t.window=61, s.window=7) #Seasonal-Trend Decomp w/ Loess
+plot(ts_ppt_1992, col='gray', lwd=2,                  # Plots raw time-series
      main = "Precipitation Trend 1992-2014",
      xlab = "Year",
      ylab = "Precipitation (mm)")
-lines(fit_p1992$time.series[,2], col="blue", lwd=3) #trend-cycle component of NDVI timeseries
-y_hat=mean(fit_p1992$time.series[,2])
-abline(h=y_hat)
+lines(fit_p1992$time.series[,2], col="blue", lwd=3) # adds trend-cycle component
+                                                    # of NDVI timeseries decomposition
+y_hat=mean(fit_p1992$time.series[,2])               
+abline(h=y_hat)                                     # adds mean from trend component
 
-plot(fit_p1992$time.series[,2], col="blue", lwd=3) #trend-cycle component of NDVI timeseries
-plot(fit_p1992$time.series[,"seasonal"],xlim=c(1992,2015), xaxt='n',col='blue',lwd=1.5,
+plot(fit_p1992$time.series[,2], col="blue", lwd=3)  # plots just trend-cycle component of STL
+
+plot(fit_p1992$time.series[,"seasonal"],            # plots seasonal signal from STL
+     xlim=c(1992,2015), 
+     xaxt='n',col='blue',lwd=1.5,
      main = "Seasonal Signal of Precipitation",
      xlab = "YEAR",
      ylab = "Seasonal Component")
@@ -62,18 +81,6 @@ abline(v=x_1992_2015, lty = 3)
 
 post98 = subset(datappt, as.Date(datappt$mdy, format="%m/%d/%Y") 
                 > '1992-2-15')
-
-seasonal_92 = as.vector(fit_p1992$time.series[,"seasonal"])
-seasonal_92.df = data.frame(seasonal_92)
-seasonal_92.df$date = post98$mdy
-colnames(seasonal_92.df)= c("Index", "Date")
-ppt_peaks = findpeaks(seasonal_92.df[,1])
-year_peaks = c()
-month_peaks = c()
-for (i in ppt_peaks[,2]){
-  peak_yr = post98[i,2]
-  
-}
 
 # NDVI
 
