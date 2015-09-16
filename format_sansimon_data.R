@@ -62,7 +62,7 @@ smooth_timeseries = function(data, window, sample_freq){
 
 ###Main 
 #San Simon data processing and graphs
-www = "SanSimon_ppt.csv"
+www = "./Data/SanSimon_ppt.csv"
 sansimon.dat = read.csv(www, header=T)
 sansimon.dat = as.data.frame(sansimon.dat, header=T)
 new_sansimon = add_wateryr(sansimon.dat)
@@ -72,9 +72,34 @@ window_size = 3
 sampling_freq = 1
 smoothed_winter = smooth_timeseries(winter_ppt,window_size, sampling_freq)
 year = seq(min(winter_ppt[,1]+window_size*sampling_freq), max(winter_ppt[,1], by=1))
-plot(year, smoothed_winter, type='l', lwd=1.5, ylab="", xlab="")
+plot(year, smoothed_winter, type='b', lwd=1.5, ylab="", xlab="")
 title(main="Winter Precipitation - San Simon, AZ", xlab="Year", ylab="Precipitation (mm)", cex.lab = 1.25)
 abline(h=mean(winter_ppt[,2]), lty='dashed', col='black')
+abline(v=1977, col='red')
+abline(v=1946, col='blue')
+abline(v=1998, col='blue')
+
+#SanSImon plot 
+data_1977 = subset(winter_ppt, winter_ppt[,1] > 1977 & winter_ppt[,1] < 1998)
+plot(data_1977[,1], data_1977[,2], type='l', col = 'black', lwd=2, main = "Winter Precipitation - San Simon, AZ",
+     ylab = 'Precipitation (mm)', xlab= 'Year', cex.lab = 1.5)
+points(data_1977[,1], data_1977[,2], type = 'p', pch = 16, col = 'blue')
+abline(h=mean(data_1977[,2]), lty='dashed', col='black')
+
+data_1946 = subset(winter_ppt, winter_ppt[,1] > 1945 & winter_ppt[,1] < 1998)
+plot(data_1946[,1], data_1946[,2], type='l', col = 'black', lwd=2, main = "Winter Precipitation - San Simon, AZ",
+     ylab = 'Precipitation (mm)', xlab= 'Year', cex.lab = 1.5)
+points(data_1946[,1], data_1946[,2], type = 'p', pch = 16, col = 'blue')
+abline(h=mean(data_1946[,2]), lty='dashed', col='black')
+abline(h=mean(data_1977[,2]), lty='dashed', col='blue')
+
+years = seq(1946, 2013, by=1)
+smooth_data = window(smoothed_winter, start=c(1946), end=c(2013))
+data_1946 = subset(winter_ppt, winter_ppt[,1] > 1945 & winter_ppt[,1] < 2013)
+plot(years, smooth_data, type='l', col = 'black', lwd=2, main = "Winter Precipitation - San Simon, AZ",
+     ylab = 'Precipitation (mm)', xlab= 'Year', ylim=range(data_1946[,2]), cex.lab = 1.5)
+points(data_1946[,1], data_1946[,2], type = 'p', pch = 16, col = 'blue')
+abline(h=mean(data_1946[,2]), lty='dashed', col='black')
 abline(v=1977, col='red')
 abline(v=1946, col='blue')
 abline(v=1998, col='blue')
@@ -90,11 +115,12 @@ window_size = 3
 sampling_freq = 1
 smoothed_winter_portal = smooth_timeseries(winter_portal, window_size, sampling_freq)
 year = seq(min(winter_portal[,1]+window_size*sampling_freq), max(winter_portal[,1], by=sampling_freq))
-plot(year, smoothed_winter_portal, type='l', lwd=1.5, main = "Winter Precipitation - Portal, AZ",
+plot(year, smoothed_winter_portal, type='o', lwd=1.5, main = "Winter Precipitation - Portal, AZ",
         ylab = 'Precipitation (mm)')
 abline(h=mean(winter_portal[,2]), lty='dashed', col='black')
 mtext(window_size, "year moving average")
 abline(v=1977, col='red')
 abline(v=1946, col='blue')
 abline(v=1998, col='blue')
+
 
