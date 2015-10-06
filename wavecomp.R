@@ -98,10 +98,11 @@ wc.image(cross_wavelet, which.image = 'wc', n.levels =250,
          siglvl.contour = 0.1, siglvl.arrow = 0.5, legend.params = 
            list(lab= "wavelet coherence levels"))
 
-pre_121515_NDVI = subset(NDVI_test, as.Date(NDVI_test$date, 
-                                            format="%Y-%m-%d") < "2014-12-15")
-ndvi_energy = data.frame(NDVI=pre_121515_NDVI$NDVI, rodent=energy$energy, date = pre_121515_NDVI$date)
-cross_wavelet2 = analyze.coherency(ndvi_energy, my.pair=c("NDVI","rodent"),
+NDVI=head(NDVI, -1)
+ndvi_energy = data.frame(NDVI=NDVI$NDVI, rodent=energy$energy, 
+                         date = NDVI$date)
+cross_wavelet2 = analyze.coherency(ndvi_energy, 
+                                   my.pair=c("NDVI","rodent"),
                                   loess.span = 0, dt = 1/12,
                                   lowerPeriod = 1/12, make.pval = T,
                                   n.sim=100)
