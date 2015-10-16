@@ -3,20 +3,6 @@ library(forecast)
 
 ##################### FUNCTIONS 
 
-create_subset = function(date_column, data_column, date, data_header)
-  {
-  # take .csv file and process to format suitable for use in 
-  # WaveletComp. Date column must be named 'date' & not be first
-  # column in dataframe
-  
-  df = data.frame(data_column,date_column)
-  subset = subset(df, as.Date(df$date_column) > date)
-  subset = subset[order(subset$date_column),]
-  colnames(subset) = c(data_header, "date")
-  return(subset)
-  
-}
-
 extract_scale_transform = function(wavelet_object, periods)
 {
   headers = character()
@@ -34,26 +20,9 @@ extract_scale_transform = function(wavelet_object, periods)
 
 ##################### MAIN CODE
 
-min_date = '1992-02-15'
-#import and process NDVI
-dataN = read.csv("monthly_NDVI.csv")
-dataN$mdy = as.Date(paste(dataN$Date, "15",sep="-"), 
-                    format="%Y-%m-%d")
-NDVI = create_subset(dataN$mdy, dataN$NDVI, min_date, 'NDVI')
-
-# import and process rodent energy
-dataE = read.csv("month_energy.csv")
-energy = create_subset(as.Date(dataE$fulldate, format="%m/%d/%Y"), 
-                       dataE$Energy, min_date, "energy")
-
-# import and process precipitation data
-datappt = read.csv("SanSimon_ppt_1946.csv")
-datappt$date = as.Date(paste(datappt$YEAR, datappt$MONTH, "15",sep="-"),
-                      format="%Y-%m-%d")
-datappt$pptmm = datappt$ppt/10
-ppt = create_subset(as.Date(datappt$date, format="%Y-%m-%d"), 
-                    datappt$pptmm, min_date, 'ppt')
-
+NDVI = read.csv("NDVI_021992_122014.csv")
+energy = read.csv("Rodent_021992_122014.csv")
+ppt = read.csv("PPT_021992_122014.csv")
 
 # create wavelet transform data for NDVI, precipitation, and Energy for subsetted data
 
@@ -98,7 +67,6 @@ wc.image(cross_wavelet, which.image = 'wc', n.levels =250,
          siglvl.contour = 0.1, siglvl.arrow = 0.5, legend.params = 
            list(lab= "wavelet coherence levels"))
 
-NDVI=head(NDVI, -1)
 ndvi_energy = data.frame(NDVI=NDVI$NDVI, rodent=energy$energy, 
                          date = NDVI$date)
 cross_wavelet2 = analyze.coherency(ndvi_energy, 
