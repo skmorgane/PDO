@@ -91,7 +91,16 @@ clean_ppt = subset(clean_ppt, clean_ppt$date > mindate)
 ppt = make_df(as.Date(clean_ppt$date, format="%m/%d/%Y"), 
                  clean_ppt$pptmm, "ppt")
 
+# Import and process PDO data
+dataPDO = read.csv("PDO_allyears.csv", stringsAsFactors = FALSE)
+clean_PDO = subset(dataPDO, dataPDO$date < maxdate)
+clean_PDO = subset(clean_PDO, clean_PDO$date > mindate)
+PDO = make_df(as.Date(clean_PDO$date, format="%Y-%m-%d"), 
+              clean_PDO$PDO, "PDO")
+
 # Write files for use in Wavelet Analysis
 write.csv(NDVI, make_filename(mindate, maxdate, "NDVI"))
 write.csv(energy, make_filename(mindate, maxdate, "Rodent"))
 write.csv(ppt, make_filename(mindate, maxdate, "PPT"))
+write.csv(PDO, make_filename(mindate, maxdate, "PDO"))
+
