@@ -98,9 +98,17 @@ clean_PDO = subset(clean_PDO, clean_PDO$date > mindate)
 PDO = make_df(as.Date(clean_PDO$date, format="%Y-%m-%d"), 
               clean_PDO$PDO, "PDO")
 
+# Import and process MEI data
+dataMEI = read.csv("MEI_allyears.csv", stringsAsFactors = FALSE)
+clean_MEI = subset(dataMEI, dataMEI$date < maxdate)
+clean_MEI = subset(clean_MEI, clean_MEI$date > mindate)
+MEI = make_df(as.Date(clean_MEI$date, format="%Y-%m-%d"), 
+              clean_MEI$MEI, "PDO")
+
 # Write files for use in Wavelet Analysis
 write.csv(NDVI, make_filename(mindate, maxdate, "NDVI"))
 write.csv(energy, make_filename(mindate, maxdate, "Rodent"))
 write.csv(ppt, make_filename(mindate, maxdate, "PPT"))
 write.csv(PDO, make_filename(mindate, maxdate, "PDO"))
+write.csv(MEI, make_filename(mindate, maxdate, "MEI"))
 
