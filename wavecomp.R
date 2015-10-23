@@ -18,54 +18,35 @@ extract_scale_transform = function(wavelet_object, periods)
   output = data.frame(scale_matrix, wavelet_object$series['date'])
 }
 
+make_univariate_wavelet_graphs = function(data, data_name){
+  wavelet = analyze.wavelet(data, data_name,  dt=1, lowerPeriod = 2, upperPeriod = 120, make.pval = T, n.sim = 100)
+  wt.image(wavelet, color.key="quantile", n.levels=100, show.date = T, date.format = "%Y-%m-%d",
+         legend.params = list(lab = "wavelet power levels", mar = 4.7, label.digits = 2),
+         main = paste(data_name, "(1992-2014)"))
+  wt.avg(wavelet, main = paste(data_name, "1992-2014"))
+}
 ##################### MAIN CODE
+
+# Finds all .csv files with the date range below and
+# imports them into separate dataframes
 
 list_datafiles = list.files(pattern="*021992_122014.csv")
 for (i in 1:length(list_datafiles)) assign(list_datafiles[i], read.csv(list_datafiles[i]))
 
+make_univariate_wavelet_graphs(PDO_021992_122014.csv, "PDO")
+make_univariate_wavelet_graphs(MEI_021992_122014.csv, "MEI")
+make_univariate_wavelet_graphs(PPT_021992_122014.csv, "ppt")
+make_univariate_wavelet_graphs(NDVI_021992_122014.csv, "NDVI")
+make_univariate_wavelet_graphs(Rodent_021992_122014.csv, "energy")
+
+# scratch area for figuring out how to find significant scales and extracting data
 
 
-# create wavelet transform data for NDVI, precipitation, and Energy for subsetted data
-
-ppt.w = analyze.wavelet(ppt, "ppt",  dt=1, lowerPeriod = 2, upperPeriod = 120, make.pval = T, n.sim = 100)
-wt.image(ppt.w, color.key="quantile", n.levels=100, show.date = T, date.format = "%Y-%m-%d",
-         legend.params = list(lab = "wavelet power levels", mar = 4.7, label.digits = 2),
-         main = "Precipitation (1992-2014)")
-
-NDVI.w = analyze.wavelet(NDVI, "NDVI",  dt=1, lowerPeriod = 2, upperPeriod = 120, make.pval = T, n.sim = 100)
+NDVI.w = analyze.wavelet(NDVI_021992_122014.csv, "NDVI",  dt=1, lowerPeriod = 2, upperPeriod = 120, make.pval = T, n.sim = 100)
 wt.image(NDVI.w, color.key="quantile", n.levels=100, show.date = T, date.format = "%Y-%m-%d",
          legend.params = list(lab = "wavelet power levels", mar = 4.7, label.digits = 2),
          main = "NDVI (1992-2014)")
 
-energy.w = analyze.wavelet(energy, "energy",  dt=1, lowerPeriod = 2, upperPeriod = 120, make.pval = T, n.sim = 100)
-wt.image(energy.w, color.key="quantile", n.levels=100, show.date = T, date.format = "%Y-%m-%d",
-         legend.params = list(lab = "wavelet power levels", mar = 4.7, label.digits = 2),
-         main = "Rodent Energy (1992-2014)")
-
-PDO.w = analyze.wavelet(PDO, "PDO", dt=1, lowerPeriod = 2, upperPeriod = 120, make.pval = T, n.sim = 100)
-wt.image(PDO.w, color.key="quantile", n.levels=100, show.date = T, date.format = "%Y-%m-%d",
-         legend.params = list(lab = "wavelet power levels", mar = 4.7, label.digits = 2),
-         main = "PDO Index (1992-2014)")
-
-MEI.w = analyze.wavelet(MEI, "MEI", dt=1, lowerPeriod = 2, upperPeriod = 120, make.pval = T, n.sim = 100)
-wt.image(MEI.w, color.key="quantile", n.levels=100, show.date = T, date.format = "%Y-%m-%d",
-         legend.params = list(lab = "wavelet power levels", mar = 4.7, label.digits = 2),
-         main = "Multivariate ENSO Index (1992-2014)")
-
-# extract specific scales from wavelet transforms
-
-periods = c(6,12,24,48,60)
-ppt_scaledata = extract_scale_transform(ppt.w, periods)
-NDVI_scaledata = extract_scale_transform(NDVI.w, periods)
-energy_scaledata = extract_scale_transform(energy.w, periods)
-
-# spectral density plots
-
-wt.avg(energy.w)
-wt.avg(ppt.w)
-wt.avg(NDVI.w)
-wt.avg(PDO.w)
-wt.avg(MEI.w)
 
 # cross-wavelet correlations (no lags to my knowledge)
 
