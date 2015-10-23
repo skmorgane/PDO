@@ -103,7 +103,7 @@ dataMEI = read.csv("MEI_allyears.csv", stringsAsFactors = FALSE)
 clean_MEI = subset(dataMEI, dataMEI$date < maxdate)
 clean_MEI = subset(clean_MEI, clean_MEI$date > mindate)
 MEI = make_df(as.Date(clean_MEI$date, format="%Y-%m-%d"), 
-              clean_MEI$MEI, "PDO")
+              clean_MEI$MEI, "MEI")
 
 # Write files for use in Wavelet Analysis
 write.csv(NDVI, make_filename(mindate, maxdate, "NDVI"))
