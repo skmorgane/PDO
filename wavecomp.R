@@ -46,7 +46,7 @@ NDVI.w = analyze.wavelet(NDVI_021992_122014.csv, "NDVI",  dt=1, lowerPeriod = 2,
 wt.image(NDVI.w, color.key="quantile", n.levels=100, show.date = T, date.format = "%Y-%m-%d",
          legend.params = list(lab = "wavelet power levels", mar = 4.7, label.digits = 2),
          main = "NDVI (1992-2014)")
-
+#TODO (@morgan): need to figure out how to extract the row number for rows with pvalues < .1
 
 # cross-wavelet correlations (no lags to my knowledge)
 
